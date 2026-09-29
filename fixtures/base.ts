@@ -1,38 +1,38 @@
-// import {test as base, expect, Page } from '@playwright/test';
-// import path from 'path';
+import {test as base, expect, Page } from '@playwright/test';
+import path from 'path';
 
-// type Fixtures =  {
-//     authenticatedPage: Page;
-//     mufgSandBoxAuthenticatedPage: Page;
-// }
+type Fixtures =  {
+    authenticatedPage: Page;
+    mufgSandBoxAuthenticatedPage: Page;
+}
 
-// type WorkerFixtures = {
-//     workerAuthedContext: Awaited<ReturnType<Page['context']>>;
-// }
+type WorkerFixtures = {
+    workerAuthedContext: Awaited<ReturnType<Page['context']>>;
+}
 
-// export const test = base.extend<Fixtures, WorkerFixtures>({
-//     workerAuthedContext: [
-//         async({ browser}, use)=>{
-//             const authFile = path.join(__dirname, '../playwright/.auth/user.json');
-//             const context = await browser.newContext({storageState: authFile})                ;
-//             await use (context);
-//             await context.close();
-//         },
-//         {scope: 'worker'},
-//     ],
+export const test = base.extend<Fixtures, WorkerFixtures>({
+    workerAuthedContext: [
+        async({ browser}, use)=>{
+            const authFile = path.join(__dirname, '../playwright/.auth/user.json');
+            const context = await browser.newContext({storageState: authFile})                ;
+            await use (context);
+            await context.close();
+        },
+        {scope: 'worker'},
+    ],
 
-//     authenticatedPage: async({workerAuthedContext}, use) =>{
-//         const page = await workerAuthedContext.newPage();
-//         await use(page);
-//         await page.close();
-//     },
+    authenticatedPage: async({workerAuthedContext}, use) =>{
+        const page = await workerAuthedContext.newPage();
+        await use(page);
+        await page.close();
+    },
     
-//     mufgSandBoxAuthenticatedPage: async({workerAuthedContext}, use) =>{
-//         const page = await workerAuthedContext.newPage();
-//         await use(page);
-//         await page.close();
-//     },
+    mufgSandBoxAuthenticatedPage: async({workerAuthedContext}, use) =>{
+        const page = await workerAuthedContext.newPage();
+        await use(page);
+        await page.close();
+    },
 
-// })
+})
 
-// export {expect};
+export {expect};

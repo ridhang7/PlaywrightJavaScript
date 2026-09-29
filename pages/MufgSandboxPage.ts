@@ -17,8 +17,12 @@ export class MufgSandboxPage {
     this.portfolioBalance = this.page.locator('.balance-value');
   }
 
-  async goto() {
-    await this.page.goto("/");
+  // async goto() {
+  //   await this.page.goto("/");
+  // }
+
+  async goto(url: string) {
+    await this.page.goto(url);
   }
 
   async login(businessarea: string, username: string, password: string) {

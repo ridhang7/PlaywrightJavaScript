@@ -25,10 +25,10 @@ export default defineConfig({
     ['blob'], // enables `playwright merge-reports` across shards in CI
   ],
 
-  // globalSetup: require.resolve('./global-setup'),
+  globalSetup: './global-setup',
 
   use: {
-    baseURL: 'http://localhost:5173/',
+    baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
