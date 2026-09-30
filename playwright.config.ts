@@ -1,14 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-/**
- * Enterprise-style config:
- * - fullyParallel + workers make the suite shardable in CI.
- * - trace/video only captured on failure/retry to keep artifacts lean.
- *
- * NOTE: `globalSetup` is deliberately NOT wired in yet — Lab 3 (Topic 7)
- * has you create `global-setup.ts` and add the `globalSetup:` line below
- * yourself. Don't add it before then.
- */
+/** Shared setup authenticates once and saves storage state for the test fixtures. */
 export default defineConfig({
   testDir: './tests',
   timeout: 30_000,

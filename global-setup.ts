@@ -1,23 +1,30 @@
-import { chromium, FullConfig } from "@playwright/test";
-// import { LoginPage } from "@pages/LoginPage";
-import { MufgSandboxPage } from "./pages/MufgSandboxPage";
+import { chromium, FullConfig } from '@playwright/test';
+import { mkdir } from 'fs/promises';
 import path from 'path';
+import { MufgSandboxPage } from './pages/MufgSandboxPage';
 
-async function globalSetup(config: FullConfig){
-    const  {baseURL} = config.projects[0].use;
+async function globalSetup(config: FullConfig) {
+    const baseURL = config.projects[0].use.baseURL;
+    if (typeof baseURL !== 'string') {
+        throw new Error('A baseURL must be configured for global setup.');
+    }
+
+    const authFile = path.resolve(__dirname, 'playwright', '.auth', 'user.json');
+    await mkdir(path.dirname(authFile), { recursive: true });
+
     const browser = await chromium.launch();
-    const page = await browser.newPage();
-    // page.goto(`${baseURL}/login`);
-    // const loginPage = await new LoginPage(page);
-    // loginPage.goto();
-    // loginPage.login('standard_user', 'secret_sauce');
+    try {
+        const page = await browser.newPage();
+        const mufgSandboxPage = new MufgSandboxPage(page);
 
-    const mufgSandboxPage = new MufgSandboxPage(page);
-    await mufgSandboxPage.goto(`${baseURL}/login`);
-    await mufgSandboxPage.login('Retail Banking','demo', 'demo1234');
-    const authFile = path.join( 'playwright/.auth/user.json')
-    await page.context().storageState({path: authFile})
+        await mufgSandboxPage.goto(new URL('/login', baseURL).toString());
+        await mufgSandboxPage.login('Retail Banking', 'demo', 'demo1234');
+        await mufgSandboxPage.portfolioBalance.waitFor({ state: 'visible' });
 
+        await page.context().storageState({ path: authFile });
+    } finally {
+        await browser.close();
+    }
 }
 
 export default globalSetup
