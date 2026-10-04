@@ -1,46 +1,54 @@
-# Advanced Playwright with TypeScript — Day 1 Starter
+# Holdings Sandbox: Playwright capstone starter
 
-This is the project you build the three Day 1 labs into. Uses two public sandboxes —
-`the-internet.herokuapp.com` for UI, `reqres.in` for API — so there is nothing confidential
-in it and it is safe to push to any repo.
+You are converting a Selenium + Java suite (the `selenium-holdings-suite` folder) to Playwright with TypeScript. The app is the same Holdings Sandbox you have used all week.
 
-## Setup
+## Set up
 
-```bash
+```
 npm install
-npx playwright install --with-deps
 ```
 
-There's nothing to run yet — `npm test` will report "no tests found" until you've built
-something in one of the labs. That's expected.
+Install Microsoft Edge if it is not already available on your machine. Playwright tests and the shared login setup run in Edge.
 
-## What's already here, and why
+Start the Sandbox (`npm run dev` in its folder), then:
 
-| File | Status | Why |
+```
+npx playwright test          # runs what you have converted so far
+npm run check                # shows progress and flags patterns a good conversion should not contain
+```
+
+## How this works
+
+* Open the Selenium test named in each comment, read what it does, then write it the Playwright way. Do not translate line by line.
+* Keep every test title exactly as it is (`01 ...`, `02 ...`). The progress check counts by title number.
+* When a test is done, change `test.fixme(` to `test(`.
+* 01 is finished. 02 is half done (finish it, then remove `.fixme`). `loggedInPage` in `fixtures/index.ts` is yours to build.
+
+## The rules a good conversion follows
+
+1. No `waitForTimeout` and no sleeps. Assertions wait for you.
+2. No XPath. Use `getByRole`, `getByLabel`, `getByText` or `getByTestId`.
+3. Tests that change data use their own account (a fixture), not the shared `demo` account.
+4. Login setup lives in a fixture, not in every test.
+
+`npm run check -- --strict` also fails while any of the 15 tests is still `fixme`.
+
+## Progress tracker
+
+| # | Test | Done |
 |---|---|---|
-| `pages/LoginPage.ts` | Pre-built | Referenced as a given in Lab 2's prerequisites — Lab 1 doesn't use it (Lab 1 is raw locators, on purpose, before Page Object Model is introduced in Topic 4) |
-| `playwright.config.ts` | Pre-built, but `globalSetup` line is commented out | Lab 3 (Topic 7) has you add it yourself |
-| everything else in `pages/`, `fixtures/`, `tests/` | **Empty — you build these** | That's the labs |
-
-## What each lab adds
-
-* **Lab 1** (Topic 3.2) — `tests/ui/login.spec.ts`, written with raw locators, no Page Objects yet.
-* **Lab 2** (Topic 5.2) — `pages/SecureAreaPage.ts`, then a test wiring it together with `LoginPage`.
-* **Lab 3** (Topic 7.2) — `global-setup.ts`, `fixtures/base.ts` (the `authenticatedPage` fixture chain), then a test that uses it.
-
-Follow the GitBook Lab Guide pages for step-by-step instructions — this repo intentionally
-doesn't hand you the answers up front.
-
-## Project structure
-
-```
-pages/                 Page Object Model classes — LoginPage.ts given, you add the rest
-fixtures/               Typed custom fixtures — empty until Lab 3
-tests/ui/               UI specs — empty until Lab 1
-utils/                  Shared test-data generation (used from Day 2 onward)
-playwright.config.ts    Config — globalSetup wired in during Lab 3
-azure-pipelines.yml     CI pipeline (Day 3 material)
-```
-
-Day 2 and Day 3 add their own test directories and fixtures on top of this as the
-programme progresses.
+| 01 | Valid login lands on the dashboard | yes (given) |
+| 02 | Wrong password shows an error | half |
+| 03 | Every business area can log in | |
+| 04 | Dashboard lists the holdings for the account | |
+| 05 | An account with no holdings shows the empty message | |
+| 06 | Logging out returns to login and blocks the dashboard | |
+| 07 | Selling on NSE with cash settlement is confirmed | |
+| 08 | Cheque settlement without a branch is rejected | |
+| 09 | Cheque settlement with a branch is confirmed | |
+| 10 | Selling more than is held is rejected | |
+| 11 | A sale reduces the quantity held on the server | |
+| 12 | A freshly seeded account starts with the default holdings and balance | |
+| 13 | The statement opens in a new window | |
+| 14 | The terms can be accepted inside the iframe | |
+| 15 | The market filter accepts several selections | |

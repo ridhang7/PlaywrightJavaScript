@@ -1,30 +1,24 @@
 import {APIRequestContext, test as base, expect, Page } from '@playwright/test';
 import path from 'path';
 
+export interface SeededAccount {
+  accountId: string;
+  username: string;
+  password: string;
+}
+
+interface SeedOptions {
+  holdings?: { name: string; market: string; quantity: number; avgPrice: number }[];
+}
+
 type Fixtures =  {
-    authenticatedPage: Page;
+    api: APIRequestContext;
+    createAccount: (options?: SeedOptions) => Promise<SeededAccount>;
     mufgSandBoxAuthenticatedPage: Page;
-    apiContext: APIRequestContext;
-    seededAccount: SeededAccount;
     hybridPage: {
         page: Page;
         account: SeededAccount;
     };
-}
-
-type SeededAccount = {
-    accountId: string;
-    area: string;
-    username: string;
-    password: string;
-    balance: number;
-    holdings: {
-        id: string;
-        name: string;
-        market: string;
-        quantity: number;
-        avgPrice: number;
-    }[]
 }
 
 type WorkerFixtures = {
@@ -42,53 +36,48 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
         {scope: 'worker'},
     ],
 
-    authenticatedPage: async({workerAuthedContext}, use) =>{
-        const page = await workerAuthedContext.newPage();
-        await use(page);
-        await page.close();
-    },
+    createAccount: async ({ api }, use) => {
+    await use(async (options = {}) => {
+      const res = await api.post('test/seed-account', { data: options });
+      expect(res.ok()).toBeTruthy();
+      return res.json();
+    });
+  },
     
-    mufgSandBoxAuthenticatedPage: async({workerAuthedContext}, use) =>{
+    mufgSandBoxAuthenticatedPage: async({workerAuthedContext, createAccount}, use) =>{
+        const account = await createAccount();
+        await workerAuthedContext.addInitScript((accountId) => {
+            localStorage.setItem('holdingsSandbox.accountId', accountId);
+        }, account.accountId);
         const page = await workerAuthedContext.newPage();
         await use(page);
         await page.close();
     },
 
-    apiContext: async({ playwright }, use) =>{
+    hybridPage: async({ browser, baseURL, createAccount }, use) => {
+        const account = await createAccount();
+        const context = await browser.newContext({ baseURL });
+        await context.addInitScript((accountId) => {
+            localStorage.setItem('holdingsSandbox.accountId', accountId);
+        }, account.accountId);
+
+        const page = await context.newPage();
+        try {
+            await page.goto('/dashboard');
+            await expect(page.getByRole('heading', { level: 1 })).toContainText(account.username);
+            await use({ page, account });
+        } finally {
+            await context.close();
+        }
+    },
+
+    api: async({ playwright }, use) =>{
         const context = await playwright.request.newContext({
             baseURL: 'http://localhost:4000/api/',
         });
         await use(context);
         await context.dispose();
     },
-
-    seededAccount: async({apiContext}, use) =>{
-        const response = await apiContext.post('test/seed-account', {data: {}});
-        const account: SeededAccount = await response.json();
-        await use(account);
-    },
-
-    hybridPage: async({browser, apiContext}, use) =>{
-        const response = await apiContext.post('test/seed-account', {data: {holdings: [{name: 'Hybrid Test Fund', market: 'NSE', quantity: 120, avgPrice: 1000}]}});
-        const account = await response.json();
-        const context = await browser.newContext(
-            {storageState: 
-                {cookies: [], 
-                    origins: [
-                        {
-                            origin: 'http://localhost:5173',
-                            localStorage: [
-                                {name: 'holdingsSandbox.accountId', value: account.accountId}
-                            ]
-                        }
-                    ]
-                }
-            }   
-        );
-        const page = await context.newPage();
-        await use({page, account});
-        await context.close();
-    }
 });
 
 export {expect};

@@ -1,25 +1,28 @@
-// import { Page, Locator } from '@playwright/test';
+import { type Page, expect } from '@playwright/test';
 
-// export class LoginPage {
-//   readonly page: Page;
-//   readonly usernameInput: Locator;
-//   readonly passwordInput: Locator;
-//   readonly loginButton: Locator;
+export class LoginPage {
+  constructor(private readonly page: Page) {}
 
-//   constructor(page: Page) {
-//     this.page = page;
-//     this.usernameInput = page.getByLabel('username');
-//     this.passwordInput = page.getByLabel('password');
-//     this.loginButton = page.getByRole('button', { name: /login/i });
-//   }
+  async open(url = '/login') {
+    await this.page.goto(url);
+  }
 
-//   async goto() {
-//     await this.page.goto('/');
-//   }
+  async login(area: string, username: string, password: string) {
+    await this.page.getByLabel('Business area').selectOption(area);
+    await this.page.getByLabel('Username').fill(username);
+    await this.page.getByLabel('Password').fill(password);
+    await this.page.getByRole('button', { name: 'Log In' }).click();
+  }
 
-//   async login(username: string, password: string) {
-//     await this.usernameInput.fill(username);
-//     await this.passwordInput.fill(password);
-//     await this.loginButton.click();
-//   }
-// }
+  get errorMessage() {
+    return this.page.getByRole('alert');
+  }
+
+  async expectOnDashboard() {
+    await expect(this.page).toHaveURL(/\/dashboard/);
+  }
+
+  async logout() {
+    await this.page.getByRole('button', { name: 'Log Out' }).click();
+  }
+}
